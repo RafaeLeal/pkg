@@ -73,11 +73,11 @@ func (dif *TypedInformerFactory) Get(gvr schema.GroupVersionResource) (cache.Sha
 	return inf, lister, nil
 }
 
-type unstructuredLister func(metav1.ListOptions) (*unstructured.UnstructuredList, error)
+type unstructuredLister func(context.Context, metav1.ListOptions) (*unstructured.UnstructuredList, error)
 
 func asStructuredLister(ulist unstructuredLister, listObj runtime.Object) cache.ListFunc {
 	return func(opts metav1.ListOptions) (runtime.Object, error) {
-		ul, err := ulist(opts)
+		ul, err := ulist(context.TODO(), opts)
 		if err != nil {
 			return nil, err
 		}
@@ -92,8 +92,8 @@ func asStructuredLister(ulist unstructuredLister, listObj runtime.Object) cache.
 // AsStructuredWatcher is public for testing only.
 // TODO(mattmoor): Move tests for this to `package duck` and make private.
 func AsStructuredWatcher(wf cache.WatchFunc, obj runtime.Object) cache.WatchFunc {
-	return func(lo metav1.ListOptions) (watch.Interface, error) {
-		uw, err := wf(lo)
+	return func(ctx context.Context, lo metav1.ListOptions) (watch.Interface, error) {
+		uw, err := wf(ctx, lo)
 		if err != nil {
 			return nil, err
 		}
