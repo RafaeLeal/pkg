@@ -92,8 +92,8 @@ func asStructuredLister(ulist unstructuredLister, listObj runtime.Object) cache.
 // AsStructuredWatcher is public for testing only.
 // TODO(mattmoor): Move tests for this to `package duck` and make private.
 func AsStructuredWatcher(wf cache.WatchFunc, obj runtime.Object) cache.WatchFunc {
-	return func(ctx context.Context, lo metav1.ListOptions) (watch.Interface, error) {
-		uw, err := wf(ctx, lo)
+	return func(lo metav1.ListOptions) (watch.Interface, error) {
+		uw, err := wf(lo)
 		if err != nil {
 			return nil, err
 		}
