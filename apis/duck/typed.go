@@ -45,6 +45,12 @@ type TypedInformerFactory struct {
 // Check that TypedInformerFactory implements InformerFactory.
 var _ InformerFactory = (*TypedInformerFactory)(nil)
 
+func withoutContext(f func (context.Context, metav1.ListOptions) (watch.Interface, error)) func (metav1.ListOptions) (watch.Interface, error) {
+	return func (opts metav1.ListOptions) (watch.Interface, error) {
+		return f(context.TODO(), opts)
+	}
+}
+
 // Get implements InformerFactory.
 func (dif *TypedInformerFactory) Get(gvr schema.GroupVersionResource) (cache.SharedIndexInformer, cache.GenericLister, error) {
 	// Avoid error cases, like the GVR does not exist.
@@ -56,7 +62,7 @@ func (dif *TypedInformerFactory) Get(gvr schema.GroupVersionResource) (cache.Sha
 	listObj := dif.Type.GetListType()
 	lw := &cache.ListWatch{
 		ListFunc:  asStructuredLister(dif.Client.Resource(gvr).List, listObj),
-		WatchFunc: AsStructuredWatcher(dif.Client.Resource(gvr).Watch, dif.Type),
+		WatchFunc: AsStructuredWatcher(withoutContext(dif.Client.Resource(gvr).Watch), dif.Type),
 	}
 	inf := cache.NewSharedIndexInformer(lw, dif.Type, dif.ResyncPeriod, cache.Indexers{
 		cache.NamespaceIndex: cache.MetaNamespaceIndexFunc,
