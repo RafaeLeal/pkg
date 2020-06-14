@@ -17,6 +17,7 @@ limitations under the License.
 package duck
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -48,7 +49,7 @@ var _ InformerFactory = (*TypedInformerFactory)(nil)
 func (dif *TypedInformerFactory) Get(gvr schema.GroupVersionResource) (cache.SharedIndexInformer, cache.GenericLister, error) {
 	// Avoid error cases, like the GVR does not exist.
 	// It is not a full check. Some RBACs might sneak by, but the window is very small.
-	if _, err := dif.Client.Resource(gvr).List(metav1.ListOptions{}); err != nil {
+	if _, err := dif.Client.Resource(gvr).List(context.TODO(), metav1.ListOptions{}); err != nil {
 		return nil, nil, err
 	}
 
